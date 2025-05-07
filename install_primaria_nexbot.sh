@@ -1,53 +1,49 @@
 #!/bin/bash
 
-echo "========================================"
-echo "🚀 INSTALADOR PRINCIPAL - NEXBOT"
-echo "========================================"
+echo "======================================="
+echo "🚀 INSTALADOR COMPLETO - NEXBOT"
+echo "======================================="
+
+# Entrada de dados
+read -p "🔐 Defina a senha do painel e banco de dados: " senha
+read -p "🏷️ Nome da empresa/instância: " empresa
+read -p "📞 Quantidade de conexões WhatsApp: " conexoes
+read -p "👤 Quantidade de usuários: " usuarios
+read -p "🌐 Domínio do frontend (sem http): " frontend
+read -p "🌐 Domínio do backend (sem http): " backend
+read -p "🔌 Porta do frontend (ex: 3000): " porta_front
+read -p "🔌 Porta do backend (ex: 4000): " porta_back
+read -p "🔌 Porta do Redis/agendamento (ex: 5000): " porta_redis
+
 echo ""
-echo "Escolha uma opção:"
-echo "0 - Instalar Nexbot"
-echo "1 - Atualizar Nexbot"
-echo "2 - Deletar Nexbot"
-echo "3 - Bloquear Nexbot"
-echo "4 - Desbloquear Nexbot"
-echo "5 - Alterar domínio do Nexbot"
-echo ""
+echo "🔧 Atualizando servidor e instalando dependências..."
+apt update && apt upgrade -y
+apt install -y curl git redis-server
 
-read -p "Digite a opção desejada: " opcao
+echo "📦 Instalando Node.js v18 LTS e Yarn..."
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt install -y nodejs
+npm install -g yarn pm2
 
-case $opcao in
-  0)
-    echo "🔐 Defina a senha do painel e banco de dados:"
-    read -s senha
-    echo "🏷️ Informe o nome da empresa/instância:"
-    read empresa
-    echo "📞 Quantidade de conexões WhatsApp:"
-    read conexoes
-    echo "👤 Quantidade de usuários:"
-    read usuarios
-    echo "🌐 Domínio do frontend:"
-    read frontend
-    echo "🌐 Domínio do backend:"
-    read backend
-    echo "🔌 Porta do frontend (ex: 3000):"
-    read porta_front
-    echo "🔌 Porta do backend (ex: 4000):"
-    read porta_back
-    echo "🔌 Porta do Redis/agendamento (ex: 5000):"
-    read porta_redis
+echo "🧠 Clonando repositório Nexbot..."
+cd /home
+git clone https://github.com/agencia25/Nexbotoriginal.git "$empresa"
 
-    echo ""
-    echo "🚧 Iniciando instalação do Nexbot para '$empresa'..."
-    echo "Senha: $senha"
-    echo "Conexões: $conexoes | Usuários: $usuarios"
-    echo "Frontend: $frontend:$porta_front"
-    echo "Backend: $backend:$porta_back"
-    echo "Redis (agendamento): porta $porta_redis"
+echo "🔧 Instalando dependências do backend..."
+cd "/home/$empresa/backend"
+yarn install
 
-    # Aqui você incluirá os comandos reais de instalação (Node, PM2, build, etc)
-    echo "⚙️ (Instalação real do Nexbot será configurada aqui...)"
-    ;;
-  *)
-    echo "❌ Opção inválida ou ainda não implementada."
-    ;;
-esac
+echo "⚙️ Subindo backend com PM2..."
+pm2 start yarn --name "${empresa}_backend" -- start
+
+echo "🌐 Instalando dependências do frontend..."
+cd "/home/$empresa/frontend"
+yarn install
+
+echo "🛠️ Fazendo build do frontend..."
+yarn build
+
+echo "✅ Instalação do Nexbot finalizada!"
+echo "➡️ Acesse o painel em: http://$frontend:$porta_front"
+echo "➡️ Login: admin@admin.com | Senha: 123456"
+
